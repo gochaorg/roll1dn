@@ -136,10 +136,13 @@ pub struct Round<R>
 
   /// генератор случайных чисел
   pub rnd: Box<R>,
+
+  /// Игроки которые участвуют
+  pub players: HashSet<String>
 }
 
 /// Бросок кубика игрока
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Roll {
   /// Время броска
   pub time: Instant,
@@ -166,13 +169,56 @@ impl Round<rand::rngs::ThreadRng> {
       winners: HashSet::new(), 
       max_winners: 0, 
       conflict: HashSet::new(), 
-      rnd: Box::new(rand::thread_rng())
+      rnd: Box::new(rand::thread_rng()),
+      players: HashSet::new()
     }
   }
 
-  pub fn allow( &mut self, player: &str ) -> Result<(),String> { todo!() }
-  pub fn deny( &mut self, player: &str ) -> Result<(),String> { todo!() }
-  pub fn 
+  pub fn allow( &mut self, player: &str ) -> Result<(),String> { 
+    self.allowed_players.insert(String::from(player));
+    Ok(())
+  }
+  pub fn deny( &mut self, player: &str ) -> Result<(),String> { 
+    self.allowed_players.remove(&String::from(player));
+    Ok(())
+  }
+  pub fn is_closed( &self ) -> bool {
+    self.finished.is_some()
+  }
+  pub fn roll( &mut self, player: &str ) -> Result<Roll,String> {
+    if self.is_closed() {
+      return Err(format!("round is closed"));
+    }
+
+    let plyr = String::from(player);
+    if !self.allowed_players.contains(&plyr) {
+      return Err(format!("player {player} not allowed"))
+    }
+
+    if !self.players.contains(&plyr) {
+      if self.players.len() >= self.max_players as usize {
+        return Err(format!("can't add player {player}, limit has been reached"))
+      }
+      self.players.insert(plyr.clone());
+    }
+
+    let value = self.rnd.gen_range( (self.value_from .. (self.value_to+1)) );
+    let roll = Roll {
+      time: Instant::now(),
+      value: self.rnd.gen_range( (self.value_from .. (self.value_to+1)) ),
+      player: plyr.clone()
+    };
+
+    self.rolls.push(roll.clone());
+
+    self.update_conflict();
+
+    Ok(roll)
+  }  
+
+  fn update_conflict( &mut self ) {
+
+  }
 }
 
 pub fn new_round() -> Round<rand::rngs::ThreadRng> { Round::new() }
@@ -180,5 +226,12 @@ pub fn new_round() -> Round<rand::rngs::ThreadRng> { Round::new() }
 #[test]
 fn test_roll() {
   let mut round = new_round();
-  println!("{:?}", round)
+  round.max_players = 10;
+  round.allow("player-a");
+  round.allow("player-b");
+
+  let roll1 = round.roll("player-a");
+  println!( "roll {:?}",roll1 );  
+  println!( "roll {:?}",round.roll("player-c") );
+  println!( "roll {:?}",round.roll("player-b") );
 }
