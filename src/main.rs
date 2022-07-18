@@ -33,6 +33,31 @@ async fn users_list( state: web::Data<AppState> ) -> impl Responder {
     HttpResponse::Ok().body(out)
 }
 
+#[test]
+fn test_user_list() {
+    use serde::{Deserialize, Serialize};
+    use serde_json::json;
+
+    let values = vec![ "+7 950 190 66 77", "8(343)3451234" ];
+
+    let john = json!({
+        "name": "John Doe",
+        "age": 43,
+        "phones": values
+    });
+
+    println!("first phone number: {}", john["phones"][0]);
+    println!("{}", john.to_string());
+
+    println!("--------------");
+
+    let combine = json!({
+        "root": "Root a/b",
+        "inner": john
+    });
+    println!("{}",combine.to_string());
+}
+
 #[post("/echo")]
 async fn echo(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
