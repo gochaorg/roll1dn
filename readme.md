@@ -88,15 +88,15 @@ API
     - res
       ```json
       {
-        "name": "user name"
+        "name": "user name",
         "id": 123
       }
       ```
   - GET `/user` list users
     - res
       ```json
-      [ { "name": "username a", id:123 } ,
-        { "name": "username b", id:124 } ,
+      [ { "name": "username a", "id":123 } ,
+        { "name": "username b", "id":124 } ,
         ....
       ]
       ```
@@ -105,21 +105,41 @@ API
     - req
       ```json
       {
-        "name": "new name"
+        "name": "new name",
         "id": 123
       }
       ```
 - room
   - POST `/room/{name}` create room
+    - res
+      ```json
+      {
+        "name": "room name",
+        "id": 123,
+        "max_players": 1
+      }
+      ```
   - GET `/room` list rooms
   - DELETE `/room/{name}` delete room
-  - POST `/room/{name}`
+  - POST `/room/{name}/update`
     - req
       ```json
       {
-        "name": "new name"
+        "name": "new name",
+        "id": 123,
+        "max_players": 1
       }
       ```
 - room to user  
-  - PUT `/welcome/{user_name}/room/{room_name}` associate user with room
-  - PUT `/outcome/{user_name}/room/{room_name}` de-associate user with room
+  - PUT `/room/welcome/{user_name}/room/{room_name}` associate user with room
+  - PUT `/room/outcome/{user_name}/room/{room_name}` de-associate user with room
+  - GET `/room/{name}/players` - players in room
+    - res
+      ```json
+      [ { "name": "username a", "id":123 } ,
+        { "name": "username b", "id":124 } ,
+        ....
+      ]
+      ```
+- round
+  - POST `/room/{name}/start`
