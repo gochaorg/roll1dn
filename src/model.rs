@@ -1,5 +1,5 @@
 use std::sync::{Mutex, Arc};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, BTreeSet, BTreeMap};
 use std::time::{Instant,Duration};
 use rand::Rng;
 
@@ -154,6 +154,15 @@ pub struct Roll {
   pub value: u8
 }
 
+#[derive(Debug,Clone)]
+pub struct Conflict {
+  pub min_value: Option<u8>,
+  pub max_value: Option<u8>,
+  pub players_roll: HashMap<String,u8>,
+  pub roll_players: BTreeMap<u8,HashSet<String>>,
+  pub values: BTreeSet<u8>,
+}
+
 impl Round<rand::rngs::ThreadRng> {
   pub fn new() -> Self {
     Self { 
@@ -211,13 +220,53 @@ impl Round<rand::rngs::ThreadRng> {
 
     self.rolls.push(roll.clone());
 
-    self.update_conflict();
-
     Ok(roll)
   }  
 
-  fn update_conflict( &mut self ) {
+  pub fn conflict( &self ) -> Conflict {
+    let mut cft = Conflict {
+        min_value: None,
+        max_value: None,
+        players_roll: HashMap::new(),
+        roll_players: BTreeMap::new(),
+        values: BTreeSet::new(),
+    };
+    for roll in self.rolls.iter() {      
+      cft.min_value = match cft.min_value {
+        None => Some(roll.value),
+        Some(x) => Some(x.min(roll.value))
+      };
+      cft.max_value = match cft.max_value {
+        None => Some(roll.value),
+        Some(x) => Some(x.max(roll.value))
+      };
+      cft.values.insert(roll.value);
 
+      match cft.players_roll.get(&roll.player.clone()) {
+        None => (),
+        Some(x) => {
+          match cft.roll_players.get_mut(x) {
+            None => (),
+            Some(plrs) => {
+              plrs.remove(&roll.player.clone());
+            }
+          }
+        }
+      }
+      
+      cft.players_roll.insert(roll.player.clone(), roll.value);      
+      match cft.roll_players.get_mut(&roll.value) {
+        None => {
+          let mut plrs: HashSet<String> = HashSet::new();
+          plrs.insert(roll.player.clone());
+          cft.roll_players.insert(roll.value, plrs);
+        },
+        Some(plrs) => {
+          plrs.insert(roll.player.clone());
+        }
+      }
+    }
+    cft
   }
 }
 
@@ -234,4 +283,7 @@ fn test_roll() {
   println!( "roll {:?}",roll1 );  
   println!( "roll {:?}",round.roll("player-c") );
   println!( "roll {:?}",round.roll("player-b") );
+
+  let cft = round.conflict();
+  println!("conflict {:#?}",cft)
 }
