@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::marker::PhantomData;
 use std::time::{Instant,Duration};
 use std::collections::{HashMap, HashSet, BTreeSet, BTreeMap};
 use rand::Rng;
@@ -178,4 +179,92 @@ fn roll_cude_test() {
     },
     Err(err) => println!("error {:?}",err)
   }
+}
+
+pub struct SRound<V,T,Rs,R,RND,NOW> 
+where 
+  Rs:Rolls<V=V, T=T, R=R>,
+  V:Ord,
+  T:Ord,
+  R:Roll<V,T>,
+  RND: Rand<V>,
+  NOW: Now<T>,
+{
+  rolls: Rs,
+  rnd: RND,
+  now: NOW,  
+  _p : PhantomData<(T,R)>
+}
+
+impl<V,T,Rs,R,RND,NOW> Round for SRound<V,T,Rs,R,RND,NOW>
+where 
+  Rs:Rolls<V=V, T=T, R=R>,
+  V:Ord,
+  T:Ord,
+  R:Roll<V,T>,
+  RND: Rand<V>,
+  NOW: Now<T>,
+{
+  type T = T;
+  type V = V;
+  type R = R;
+  type ROLLS = Rs;
+
+  fn roll( &self, player:&Player, time: Self::T, value: Self::V) -> Self::R {
+    todo!()
+  }
+
+  fn rolls( &self ) -> &Self::ROLLS {
+    todo!()
+  }
+
+  fn rolls_mut( &mut self ) -> &mut Self::ROLLS {
+    todo!()
+  }
+}
+
+impl<V,T,Rs,R,RND,NOW> RoundPlayers for SRound<V,T,Rs,R,RND,NOW> 
+where 
+  Rs:Rolls<V=V, T=T, R=R>,
+  V:Ord,
+  T:Ord,
+  R:Roll<V,T>,
+  RND: Rand<V>,
+  NOW: Now<T>,
+{
+    fn exists( &self, player: &Player ) -> bool {
+        todo!()
+    }
+
+    fn insert( &mut self, player: &Player ) -> Result<(),String> {
+        todo!()
+    }
+
+    fn list_players( &self ) -> Vec<Player> {
+        todo!()
+    }
+}
+
+impl<V,T,Rs,R,RND,NOW> Now<T> for SRound<V,T,Rs,R,RND,NOW> 
+where 
+  Rs:Rolls<V=V, T=T, R=R>,
+  V:Ord,
+  T:Ord,
+  R:Roll<V,T>,
+  RND: Rand<V>,
+  NOW: Now<T>,
+{
+  fn now( &self ) -> T { self.now.now() }
+}
+
+impl<V,T,Rs,R,RND,NOW> Rand<V> for SRound<V,T,Rs,R,RND,NOW> 
+where 
+  Rs:Rolls<V=V, T=T, R=R>,
+  V:Ord,
+  T:Ord,
+  R:Roll<V,T>,
+  RND: Rand<V>,
+  NOW: Now<T>,
+{
+  fn rand( &mut self ) -> V { self.rnd.rand() }
 }
