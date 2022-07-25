@@ -1,4 +1,5 @@
 mod model;
+mod model_t;
 
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use model::AppState;

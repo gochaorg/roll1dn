@@ -96,7 +96,7 @@ pub struct Room {
 
 /// Раунд игры
 #[derive(Debug)]
-pub struct Round<R>
+pub struct Round0<R>
 {
   /// Броски кубика
   pub rolls: Vec<Roll>,
@@ -163,7 +163,7 @@ pub struct Conflict {
   pub values: BTreeSet<u8>,
 }
 
-impl Round<rand::rngs::ThreadRng> {
+impl Round0<rand::rngs::ThreadRng> {
   pub fn new() -> Self {
     Self { 
       rolls: Vec::new(), 
@@ -270,7 +270,7 @@ impl Round<rand::rngs::ThreadRng> {
   }
 }
 
-pub fn new_round() -> Round<rand::rngs::ThreadRng> { Round::new() }
+pub fn new_round() -> Round0<rand::rngs::ThreadRng> { Round0::new() }
 
 #[test]
 fn test_roll() {
