@@ -115,7 +115,6 @@ pub struct SimpleRound {
   rnd: rand::rngs::ThreadRng
 }
 
-
 impl Round for SimpleRound {
   type T = Instant;
   type V = u8;
