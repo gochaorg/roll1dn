@@ -181,7 +181,7 @@ fn roll_cude_test() {
   }
 }
 
-pub struct SRound<V,T,Rs,R,RND,NOW> 
+pub struct SRound<V,T,Rs,R,RND,NOW,CR> 
 where 
   Rs:Rolls<V=V, T=T, R=R>,
   V:Ord,
@@ -189,14 +189,16 @@ where
   R:Roll<V,T>,
   RND: Rand<V>,
   NOW: Now<T>,
+  CR: Fn(&Player,T,V)->R,
 {
+  create_roll: CR,
   rolls: Rs,
   rnd: RND,
   now: NOW,  
   _p : PhantomData<(T,R)>
 }
 
-impl<V,T,Rs,R,RND,NOW> Round for SRound<V,T,Rs,R,RND,NOW>
+impl<V,T,Rs,R,RND,NOW,CR> Round for SRound<V,T,Rs,R,RND,NOW,CR>
 where 
   Rs:Rolls<V=V, T=T, R=R>,
   V:Ord,
@@ -204,6 +206,7 @@ where
   R:Roll<V,T>,
   RND: Rand<V>,
   NOW: Now<T>,
+  CR: Fn(&Player,T,V)->R,
 {
   type T = T;
   type V = V;
@@ -211,19 +214,17 @@ where
   type ROLLS = Rs;
 
   fn roll( &self, player:&Player, time: Self::T, value: Self::V) -> Self::R {
-    todo!()
+    (self.create_roll)(player,time,value)
   }
 
   fn rolls( &self ) -> &Self::ROLLS {
-    todo!()
+    &self.rolls
   }
 
-  fn rolls_mut( &mut self ) -> &mut Self::ROLLS {
-    todo!()
-  }
+  fn rolls_mut( &mut self ) -> &mut Self::ROLLS { &mut self.rolls }
 }
 
-impl<V,T,Rs,R,RND,NOW> RoundPlayers for SRound<V,T,Rs,R,RND,NOW> 
+impl<V,T,Rs,R,RND,NOW,CR> RoundPlayers for SRound<V,T,Rs,R,RND,NOW,CR> 
 where 
   Rs:Rolls<V=V, T=T, R=R>,
   V:Ord,
@@ -231,6 +232,7 @@ where
   R:Roll<V,T>,
   RND: Rand<V>,
   NOW: Now<T>,
+  CR: Fn(&Player,T,V)->R,
 {
     fn exists( &self, player: &Player ) -> bool {
         todo!()
@@ -245,7 +247,7 @@ where
     }
 }
 
-impl<V,T,Rs,R,RND,NOW> Now<T> for SRound<V,T,Rs,R,RND,NOW> 
+impl<V,T,Rs,R,RND,NOW,CR> Now<T> for SRound<V,T,Rs,R,RND,NOW,CR> 
 where 
   Rs:Rolls<V=V, T=T, R=R>,
   V:Ord,
@@ -253,11 +255,12 @@ where
   R:Roll<V,T>,
   RND: Rand<V>,
   NOW: Now<T>,
+  CR: Fn(&Player,T,V)->R,
 {
   fn now( &self ) -> T { self.now.now() }
 }
 
-impl<V,T,Rs,R,RND,NOW> Rand<V> for SRound<V,T,Rs,R,RND,NOW> 
+impl<V,T,Rs,R,RND,NOW,CR> Rand<V> for SRound<V,T,Rs,R,RND,NOW,CR> 
 where 
   Rs:Rolls<V=V, T=T, R=R>,
   V:Ord,
@@ -265,6 +268,7 @@ where
   R:Roll<V,T>,
   RND: Rand<V>,
   NOW: Now<T>,
+  CR: Fn(&Player,T,V)->R,
 {
   fn rand( &mut self ) -> V { self.rnd.rand() }
 }
